@@ -12,17 +12,29 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useFetch } from '#app';
+import { useRouter } from 'vue-router';
 
 const username = ref('');
 const password = ref('');
 const message = ref('');
+const isAuthenticated = ref(false);
+const router = useRouter();
 
 const login = async () => {
   const { data } = await useFetch('/api/login', {
     method: 'POST',
     body: { username: username.value, password: password.value },
   });
-  message.value = data.value?.message || 'Ayylmao error';
+
+  if (data.value?.success) {
+    if (process.client) {
+      localStorage.setItem('auth', 'true');
+      localStorage.setItem('needRefresh', 'true');
+    }
+    isAuthenticated.value = true;
+    router.push('/');
+  } else {
+    message.value = data.value?.message || 'Login failed';
+  }
 };
 </script>
