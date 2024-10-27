@@ -1,6 +1,14 @@
 <template>
   <div>
-    <NuxtRouteAnnouncer />
-    <NuxtWelcome />
+    <header>
+      <nav>
+        <router-link to="/">Home</router-link> |
+        <router-link to="/login">Login</router-link> |
+        <router-link to="/register">Register</router-link>
+      </nav>
+    </header>
+    <main>
+      <NuxtPage />
+    </main>
   </div>
 </template>
