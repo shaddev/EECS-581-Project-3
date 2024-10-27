@@ -10,15 +10,28 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@formkit/auto-animate": "^0.8.2",
     "@pinia/nuxt": "^0.5.5",
+    "@radix-icons/vue": "^1.0.0",
+    "@vee-validate/zod": "^4.14.6",
+    "@vueuse/core": "^11.1.0",
     "bcrypt": "^5.1.1",
+    "class-variance-authority": "^0.7.0",
+    "formidable": "^3.5.2",
     "nuxt": "^3.13.2",
+    "radix-vue": "^1.9.8",
+    "shadcn-nuxt": "^0.10.4",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7",
+    "tailwind-merge": "^2.5.4",
+    "tailwindcss-animate": "^1.0.7",
+    "vee-validate": "^4.14.6",
     "vue": "latest",
-    "vue-router": "latest"
+    "vue-router": "latest",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@nuxtjs/tailwindcss": "^6.12.2"
+    "@nuxtjs/tailwindcss": "^6.12.2",
+    "typescript": "^5.6.3"
   }
 }

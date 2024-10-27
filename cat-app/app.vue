@@ -1,6 +1,6 @@
 <template>
   <div>
-    <header>
+    <!-- <header>
       <nav>
         <router-link v-if="!isAuthenticated" to="/">Home</router-link>
         <router-link v-if="!isAuthenticated" to="/login">Login</router-link>
@@ -10,12 +10,13 @@
     </header>
     <main>
       <NuxtPage />
-    </main>
+    </main> -->
+    <Main />
   </div>
 </template>
 
 
-<script setup>
+<!-- <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -40,4 +41,4 @@ const logout = async () => {
   }
   router.push('/');
 };
-</script>
+</script> -->
