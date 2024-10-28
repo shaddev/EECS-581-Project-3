@@ -22,6 +22,12 @@ export const initDb = async () => {
       path TEXT,
       FOREIGN KEY (userId) REFERENCES users(id)
     );
+     CREATE TABLE IF NOT EXISTS likes (
+      userId INTEGER,
+      imageId INTEGER, 
+      FOREIGN KEY (userId) REFERENCES users(id),
+      FOREIGN KEY (imageID) REFERENCES images(id),
+      PRIMARY KEY (userId, imageId) );
   `);
 
   return db;

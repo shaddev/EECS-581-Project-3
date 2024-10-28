@@ -1,19 +1,21 @@
 import { initDb } from '../db';
 
 export default defineEventHandler(async (event) => {
+
+
   const db = await initDb();
 
-  const userId = getQuery(event).userId || (await readBody(event)).userId;
+  const username = getQuery(event).username;
 
   try {
     const userPictures = await db.all(
-      'SELECT * FROM images WHERE userId = ?',
-      [userId]
+      'SELECT * FROM images WHERE userId = (SELECT id from users where username = ?)',
+      [username]
     );
 
     const globalPictures = await db.all(
-      'SELECT * FROM images WHERE userId != ?',
-      [userId]
+      'SELECT * FROM images WHERE userId != (SELECT id from users where username = ?)?',
+      [username]
     );
 
     return {
