@@ -285,7 +285,7 @@ const resetRegisterForm = () => {
   const fetchFeedPosts = async () => {
     const { data, error } = await useFetch(`/api/feed?username=${loginUsername.value}`, {
       method: 'GET'});
-    feedPosts.value = data.value.userPictures || [];
+    feedPosts.value = data.value.userPictures.concat(data.value.globalPictures) || [];
   };
   
   // Fetch liked posts
