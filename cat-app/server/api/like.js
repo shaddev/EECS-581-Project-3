@@ -1,3 +1,32 @@
+/**
+ * Like Pictures API Handler
+ * 
+ * An API endpoint handler that handles liking by a specific user,
+ * identified by their username.
+ * Author: Team 7
+ * Created:10/27/2024
+ 
+ * Preconditons: 
+ * Valid database connection must be available
+ *   - Input:
+ *     - username (string): Valid username passed as query parameter
+ *     - Must be URL-encoded if contains special characters
+ *   - Database tables 'users', 'images', and 'likes' must exist
+ 
+ * Postconditions:Returns JSON object with:
+ *     - success (boolean): Indicating operation status
+ *     - likedPictures (array): Array of image objects if successful
+ *     - message (string): Error message if unsuccessful
+ 
+ * Errors: Database query errors
+ *   - Invalid parameter
+ *   - Connection errors
+ * SideEffects: Logs errors to console in case of failure
+ *   - Creates and closes database connection
+ * Invariants: Query results deal with liking/unliking
+ *   - Response structure remains consistent regardless of success/failure
+ **/
+
 import { initDb } from '../db';
 
 export default defineEventHandler(async (event) => {
