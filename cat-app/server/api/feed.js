@@ -1,3 +1,9 @@
+`
+Get the feed
+Both user pictures and global pictures (pictures not uploaded by the user)
+include whether each post has been liked by the user or not
+`
+
 import { initDb } from '../db';
 
 export default defineEventHandler(async (event) => {
