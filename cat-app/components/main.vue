@@ -244,6 +244,7 @@ const resetRegisterForm = () => {
     formData.append('image', uploadFile.value);
     formData.append('description', uploadDescription.value);
     formData.append('keywords', uploadKeywords.value.join(','));
+    formData.append('userId', loginUsername.value);
   
     const { data, error } = await useFetch('/api/upload', {
       method: 'POST',
