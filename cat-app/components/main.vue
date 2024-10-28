@@ -96,6 +96,48 @@
   </template>
   
   <script setup>
+  /**
+ * Cat Image Sharing Application Frontend
+ * 
+ * A Vue.js single-page application that provides user authentication,
+ * image uploading, feed viewing, and image interaction capabilities.
+ * 
+ * Author: Team 7
+ * preconditions
+ *   - Vue.js 3 environment
+ *   - Required components:
+ *     - Button, Dialog, Input, Textarea from UI library
+ *   - Backend API endpoints:
+ *     - /api/register
+ *     - /api/login
+ *     - /api/upload
+ *     - /api/feed
+ *     - /api/liked
+ *     - /api/like
+ *   - Access to client-side cookie storage
+ * 
+ * postconditions
+ *   - Renders responsive UI for all application features
+ *   - Maintains user authentication state
+ *   - Manages file uploads and image display
+ *   - Handles user interactions (likes, views)
+ * 
+ * errors
+ *   - Authentication failures
+ *   - File upload errors
+ *   - API connection errors
+ *   - Image loading failures
+ * 
+ * sideEffects
+ *   - Sets authentication cookies
+ *   - Modifies browser history
+ *   - Uploads files to server
+ * 
+ * invariants
+ *   - Authentication state consistency
+ *   - Form validation rules
+ *   - Image path construction
+ **/
   import { ref } from 'vue';
   import { useFetch } from '#app';
   
