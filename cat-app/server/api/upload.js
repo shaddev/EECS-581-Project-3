@@ -40,11 +40,13 @@ export default defineEventHandler(async event => {
     await fs.writeFile(newPath, file.data)
     const db = await initDb();
       await db.run(
-        'INSERT INTO images (userId, title, description, keywords, path) VALUES (?, ?, ?, ?, ?)',
+        'INSERT INTO images (userId, title, description, keywords, path) VALUES ((SELECT id FROM users WHERE username = ?), ?, ?, ?, ?)',
         [userId, title, description, keywords, newImageFilename]
       );
+    return { success: true, message: 'File uploaded successfully' };
   } catch (err) {
     console.log(err);
+    return { success: false, message: 'File upload filed' };
 
   }
 

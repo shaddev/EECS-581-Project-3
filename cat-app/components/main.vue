@@ -279,7 +279,7 @@ const resetRegisterForm = () => {
   const fetchFeedPosts = async () => {
     const { data, error } = await useFetch(`/api/feed?username=${loginUsername.value}`, {
       method: 'GET'});
-    feedPosts.value = data.value || [];
+    feedPosts.value = data.value.globalPictures || [];
   };
   
   // Fetch liked posts
@@ -287,11 +287,19 @@ const resetRegisterForm = () => {
     const { data, error } = await useFetch(`/api/liked?username=${loginUsername.value}`);
     likedPosts.value = data.value || [];
   };
+
+  console.log(feedPosts)
   
   // Initial fetch
   watch(isAuthenticated, async (newVal, oldVal) => {
     if(newVal) {
       await fetchFeedPosts();
+    }
+  })
+
+  watch(showLikedPictures, async (newVal, oldVal) => {
+    if(newVal) {
+      await fetchLikedPosts();
     }
   })
   </script>
