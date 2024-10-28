@@ -85,7 +85,7 @@
           <h1 class="text-2xl font-semibold mb-4">Your Feed</h1>
           <div v-for="post in feedPosts" :key="post.id" class="mb-4 p-4 bg-white rounded shadow">
             <h2 class="text-lg font-semibold">{{ post.title }}</h2>
-            <img :src="post.imageUrl" alt="Cat Picture" class="w-full h-auto rounded" />
+            <img :src="getImageUrl(post.path)" alt="Cat Picture" class="w-full h-auto rounded" />
             <p v-if="post.description" class="mt-2 text-gray-600">{{ post.description }}</p>
             <Button @click="toggleLike(post)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.liked ? 'Unlike' : 'Like' }}</Button>
             <p class="mt-1">{{ post.likes }} likes</p>
@@ -279,7 +279,7 @@ const resetRegisterForm = () => {
   const fetchFeedPosts = async () => {
     const { data, error } = await useFetch(`/api/feed?username=${loginUsername.value}`, {
       method: 'GET'});
-    feedPosts.value = data.value.globalPictures || [];
+    feedPosts.value = data.value.userPictures || [];
   };
   
   // Fetch liked posts
@@ -289,6 +289,13 @@ const resetRegisterForm = () => {
   };
 
   console.log(feedPosts)
+
+  const getImageUrl = (path) => {
+  if (process.client) {
+    return `${window.location.origin}/uploads/${path}`;
+  }
+  return ''; 
+};
   
   // Initial fetch
   watch(isAuthenticated, async (newVal, oldVal) => {
