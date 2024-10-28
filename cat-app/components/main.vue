@@ -73,7 +73,7 @@
             </DialogHeader>
             <div v-for="post in likedPosts" :key="post.id" class="mb-4 p-4 bg-white rounded shadow">
               <h2 class="text-lg font-semibold">{{ post.title }}</h2>
-              <img :src="post.imageUrl" alt="Cat Picture" class="w-full h-auto rounded" />
+              <img :src="getImageUrl(post.path)" alt="Cat Picture" class="w-full h-auto rounded" />
               <p v-if="post.description" class="mt-2 text-gray-600">{{ post.description }}</p>
               <Button @click="toggleLike(post)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.liked ? 'Unlike' : 'Like' }}</Button>
               <p class="mt-1">{{ post.likes }} likes</p>
@@ -262,13 +262,19 @@ const resetRegisterForm = () => {
   const likedPosts = ref([]);
   
   const toggleLike = async (post) => {
-    const { data, error } = await useFetch(`/api/posts/${post.id}/like`, {
+    console.log(post.liked)
+    const { data, error } = await useFetch(`/api/like`, {
       method: 'POST',
+      body: {
+        username: loginUsername.value,
+        imageId: post.id,
+        isLiking: !post.liked
+      }
     });
   
     if (data.value?.success) {
       post.liked = !post.liked;
-      post.likes += post.liked ? 1 : -1;
+      post.likes = post.liked ? 1 : 0;
       if (showLikedPictures.value) {
         likedPosts.value = likedPosts.value.filter(p => p.id !== post.id);
       }
@@ -285,7 +291,7 @@ const resetRegisterForm = () => {
   // Fetch liked posts
   const fetchLikedPosts = async () => {
     const { data, error } = await useFetch(`/api/liked?username=${loginUsername.value}`);
-    likedPosts.value = data.value || [];
+    likedPosts.value = data.value.likedPictures || [];
   };
 
   console.log(feedPosts)

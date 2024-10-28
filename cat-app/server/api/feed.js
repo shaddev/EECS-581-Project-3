@@ -11,12 +11,16 @@ export default defineEventHandler(async (event) => {
 
   try {
     const userPictures = await db.all(
-      'SELECT * FROM images WHERE userId = (SELECT id from users where username = ?)',
+      `SELECT i.id AS id, i.userId as userId, i.title AS title, i.description AS description, i.keywords AS keywords, i.path as path
+      , CASE WHEN l.userId IS NOT NULL THEN TRUE ELSE FALSE END AS liked
+      FROM images i LEFT JOIN likes l ON i.id = l.imageId WHERE i.userId = (SELECT id from users where username = ?)`,
       [username]
     );
 
     const globalPictures = await db.all(
-      'SELECT * FROM images WHERE userId != (SELECT id from users where username = ?)',
+      `SELECT i.id, i.userId, i.title, i.description, i.keywords, i.path as path
+      , CASE WHEN l.userId IS NOT NULL THEN TRUE ELSE FALSE END AS liked
+      FROM images i LEFT JOIN likes l ON i.id = l.imageId WHERE i.userId != (SELECT id from users where username = ?)`,
       [username]
     );
 
