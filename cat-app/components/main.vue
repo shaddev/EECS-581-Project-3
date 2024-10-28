@@ -277,7 +277,7 @@ const resetRegisterForm = () => {
   
   // Fetch feed posts
   const fetchFeedPosts = async () => {
-    const { data, error } = await useFetch('/api/feed', {
+    const { data, error } = await useFetch(`/api/feed?username=${loginUsername.value}`, {
       method: 'GET'});
     feedPosts.value = data.value || [];
   };

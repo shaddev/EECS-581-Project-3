@@ -7,6 +7,8 @@ export default defineEventHandler(async (event) => {
 
   const username = getQuery(event).username;
 
+  console.log(username)
+
   try {
     const userPictures = await db.all(
       'SELECT * FROM images WHERE userId = (SELECT id from users where username = ?)',
@@ -14,7 +16,7 @@ export default defineEventHandler(async (event) => {
     );
 
     const globalPictures = await db.all(
-      'SELECT * FROM images WHERE userId != (SELECT id from users where username = ?)?',
+      'SELECT * FROM images WHERE userId != (SELECT id from users where username = ?)',
       [username]
     );
 

@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   try {
 
     const likedPictures = await db.all(
-      'SELECT * FROM images i JOIN likes l on i.id = l.imageId WHERE userId = (SELECT id from users where username = ?) ',
+      'SELECT * FROM images i JOIN likes l on i.id = l.imageId WHERE userId = (SELECT id from users where username = ? )',
       [username]
     );
 
