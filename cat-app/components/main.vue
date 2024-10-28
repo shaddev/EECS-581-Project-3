@@ -105,6 +105,17 @@
   const showUpload = ref(false);
   const showLikedPictures = ref(false);
   const isAuthenticated = ref(false);
+  const registerErrors = ref({});
+  const loading = ref(false);
+
+  const validatePassword = (password) => {
+  if (password.length < 8) return "Password must be at least 8 characters";
+  if (!/[A-Z]/.test(password)) return "Password must contain an uppercase letter";
+  if (!/[a-z]/.test(password)) return "Password must contain a lowercase letter";
+  if (!/\d/.test(password)) return "Password must contain a number";
+  if (!/[!@#$%^&*]/.test(password)) return "Password must contain a special character";
+  return null;
+};
   
   // Register logic
   const registerUsername = ref('');
@@ -114,12 +125,29 @@
   const registerAddress = ref('');
   const registerMessage = ref('');
   
-  const register = async () => {
-    if (registerPassword.value !== registerConfirmPassword.value) {
-      registerMessage.value = 'Passwords do not match';
-      return;
-    }
-    const { data, error } = await useFetch('/api/register', {
+const register = async () => {
+  registerErrors.value = {};
+  loading.value = true;
+
+  // Password validation
+  const passwordError = validatePassword(registerPassword.value);
+  if (passwordError) {
+    registerErrors.value.password = passwordError;
+    registerMessage.value = passwordError;
+    loading.value = false;
+    return;
+  }
+
+  // Confirm password check
+  if (registerPassword.value !== registerConfirmPassword.value) {
+    registerErrors.value.confirmPassword = "Passwords do not match";
+    registerMessage.value = "Passwords do not match";
+    loading.value = false;
+    return;
+  }
+
+  try {
+    const { data } = await useFetch('/api/register', {
       method: 'POST',
       body: {
         username: registerUsername.value,
@@ -128,8 +156,29 @@
         address: registerAddress.value,
       },
     });
-    registerMessage.value = data.value?.message || 'Registration error';
-  };
+
+    if (data.value?.success) {
+      showRegister.value = false;
+      resetRegisterForm();
+    } else {
+      registerMessage.value = data.value?.message || 'Registration failed';
+    }
+  } catch (error) {
+    registerMessage.value = 'An error occurred during registration';
+  } finally {
+    loading.value = false;
+  }
+};
+
+const resetRegisterForm = () => {
+  registerUsername.value = '';
+  registerPassword.value = '';
+  registerConfirmPassword.value = '';
+  registerDescription.value = '';
+  registerAddress.value = '';
+  registerMessage.value = '';
+  registerErrors.value = {};
+};
   
   // Login logic
   const loginUsername = ref('');
