@@ -19,6 +19,7 @@
     "class-variance-authority": "^0.7.0",
     "formidable": "^3.5.2",
     "nuxt": "^3.13.2",
+    "pinia": "^2.2.4",
     "radix-vue": "^1.9.8",
     "shadcn-nuxt": "^0.10.4",
     "sqlite": "^5.1.1",

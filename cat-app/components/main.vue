@@ -4,11 +4,11 @@
         <div class="max-w-6xl mx-auto p-4 flex justify-between items-center">
           <h1 class="text-2xl font-bold text-gray-800">Ayylmao Kitty Car App</h1>
           <nav class="flex space-x-4">
-            <Button v-if="!isAuthenticated" @click="showRegister = true" variant="secondary">Register</Button>
-            <Button v-if="!isAuthenticated" @click="showLogin = true" variant="outline">Login</Button>
-            <Button v-if="isAuthenticated" @click="logout" variant="destructive">Logout</Button>
-            <Button v-if="isAuthenticated" @click="showUpload = true" variant="default">Upload Cat Picture</Button>
-            <Button v-if="isAuthenticated" @click="showLikedPictures = true" variant="ghost">Liked Pictures</Button>
+            <Button v-if="!mainstore.isAuthenticated.valueOf()" @click="showRegister = true" variant="secondary">Register</Button>
+            <Button v-if="!mainstore.isAuthenticated.valueOf()" @click="showLogin = true" variant="outline">Login</Button>
+            <Button v-if="mainstore.isAuthenticated.valueOf()" @click="logout" variant="destructive">Logout</Button>
+            <Button v-if="mainstore.isAuthenticated.valueOf()" @click="showUpload = true" variant="default">Upload Cat Picture</Button>
+            <Button v-if="mainstore.isAuthenticated.valueOf()" @click="showLikedPictures = true" variant="ghost">Liked Pictures</Button>
           </nav>
         </div>
       </header>
@@ -81,9 +81,9 @@
           </DialogContent>
         </Dialog>
   
-        <div v-if="isAuthenticated && !showUpload && !showLikedPictures">
+        <div v-if="mainstore.isAuthenticated.valueOf() && !showUpload && !showLikedPictures">
           <h1 class="text-2xl font-semibold mb-4">Your Feed</h1>
-          <div v-for="post in feedPosts" :key="post.id" class="mb-4 p-4 bg-white rounded shadow">
+          <div v-for="post in mainstore.feedPosts" :key="post.id" class="mb-4 p-4 bg-white rounded shadow">
             <h2 class="text-lg font-semibold">{{ post.title }}</h2>
             <img :src="getImageUrl(post.path)" alt="Cat Picture" class="w-full h-auto rounded" />
             <p v-if="post.description" class="mt-2 text-gray-600">{{ post.description }}</p>
@@ -140,13 +140,18 @@
  **/
   import { ref } from 'vue';
   import { useFetch } from '#app';
-  
+
+  import { useStore } from '@/stores/store'
+
+  const mainstore = useStore()
+  const isAuthenticated = mainstore.isAuthenticated.valueOf()
+  console.log("isAuthenticated setup", isAuthenticated)
   // State variables
   const showRegister = ref(false);
   const showLogin = ref(false);
   const showUpload = ref(false);
   const showLikedPictures = ref(false);
-  const isAuthenticated = ref(false);
+  // const isAuthenticated = ref(false);
   const registerErrors = ref({});
   const loading = ref(false);
 
@@ -237,7 +242,9 @@ const resetRegisterForm = () => {
       if (process.client) {
         document.cookie = "auth=true; max-age=3600"; // Set cookie for 1 hour
       }
-      isAuthenticated.value = true;
+      mainstore.isAuthenticated = true;
+      mainstore.loginUsername = loginUsername.value;
+      console.log("isAuthenticated login", mainstore.isAuthenticated.valueOf())
       showLogin.value = false;
     } else {
       loginMessage.value = data.value?.message || 'Login failed';
@@ -248,7 +255,7 @@ const resetRegisterForm = () => {
   const logout = async () => {
     if (confirm('Are you sure you want to logout?')) {
       document.cookie = "auth=; max-age=0"; // Remove cookie
-      isAuthenticated.value = false;
+      mainstore.isAuthenticated = false;
     }
   };
   
@@ -286,7 +293,7 @@ const resetRegisterForm = () => {
     formData.append('image', uploadFile.value);
     formData.append('description', uploadDescription.value);
     formData.append('keywords', uploadKeywords.value.join(','));
-    formData.append('userId', loginUsername.value);
+    formData.append('userId', mainstore.loginUsername.value);
   
     const { data, error } = await useFetch('/api/upload', {
       method: 'POST',
@@ -296,11 +303,12 @@ const resetRegisterForm = () => {
     uploadMessage.value = data.value?.message || 'Upload error';
     if (data.value?.success) {
       showUpload.value = false;
+      mainstore.fetchFeedPosts();
     }
   };
   
   // Feed and Liked Pictures logic
-  const feedPosts = ref([]);
+  const feedPosts = mainstore.feedPosts;
   const likedPosts = ref([]);
   
   const toggleLike = async (post) => {
@@ -308,7 +316,7 @@ const resetRegisterForm = () => {
     const { data, error } = await useFetch(`/api/like`, {
       method: 'POST',
       body: {
-        username: loginUsername.value,
+        username: mainstore.loginUsername.value,
         imageId: post.id,
         isLiking: !post.liked
       }
@@ -323,20 +331,9 @@ const resetRegisterForm = () => {
     }
   };
   
-  // Fetch feed posts
-  const fetchFeedPosts = async () => {
-    const { data, error } = await useFetch(`/api/feed?username=${loginUsername.value}`, {
-      method: 'GET'});
-    feedPosts.value = data.value.userPictures.concat(data.value.globalPictures) || [];
-  };
-  
-  // Fetch liked posts
-  const fetchLikedPosts = async () => {
-    const { data, error } = await useFetch(`/api/liked?username=${loginUsername.value}`);
-    likedPosts.value = data.value.likedPictures || [];
-  };
 
-  console.log(feedPosts)
+
+  console.log(mainstore.feedPosts)
 
   const getImageUrl = (path) => {
   if (process.client) {
@@ -346,15 +343,16 @@ const resetRegisterForm = () => {
 };
   
   // Initial fetch
-  watch(isAuthenticated, async (newVal, oldVal) => {
-    if(newVal) {
-      await fetchFeedPosts();
+  watch(() => mainstore.isAuthenticated, async (newVal, oldVal) => {
+    if (newVal) {
+      await mainstore.fetchFeedPosts()
     }
+    console.log("IsAuthenticated watch", mainstore.isAuthenticated)
   })
 
-  watch(showLikedPictures, async (newVal, oldVal) => {
-    if(newVal) {
-      await fetchLikedPosts();
-    }
-  })
+  // watch(mainstore.showLikedPictures, async (newVal, oldVal) => {
+  //   if (newVal) {
+  //     await mainstore.fetchLikedPosts()
+  //   }
+  // })
   </script>
