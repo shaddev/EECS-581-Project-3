@@ -73,7 +73,7 @@
             </DialogHeader>
             <div v-for="post in likedPosts" :key="post.id" class="mb-4 p-4 bg-white rounded shadow">
               <h2 class="text-lg font-semibold">{{ post.title }}</h2>
-              <img :src="getImageUrl(post.path)" alt="Cat Picture" class="w-full h-auto rounded" />
+              <img :src="getImageUrl(post.path)" alt="Cat Picture" class="rounded" style="width: auto; height: 200px" />
               <p v-if="post.description" class="mt-2 text-gray-600">{{ post.description }}</p>
               <Button @click="toggleLike(post)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.liked ? 'Unlike' : 'Like' }}</Button>
               <p class="mt-1">{{ post.likes }} likes</p>
@@ -316,7 +316,7 @@ const resetRegisterForm = () => {
     const { data, error } = await useFetch(`/api/like`, {
       method: 'POST',
       body: {
-        username: mainstore.loginUsername.value,
+        username: mainstore.loginUsername.valueOf(),
         imageId: post.id,
         isLiking: !post.liked
       }
@@ -324,7 +324,7 @@ const resetRegisterForm = () => {
   
     if (data.value?.success) {
       post.liked = !post.liked;
-      post.likes = post.liked ? 1 : 0;
+      post.likes = post.liked ? post.likes + 1 : post.likes - 1;
       if (showLikedPictures.value) {
         likedPosts.value = likedPosts.value.filter(p => p.id !== post.id);
       }
@@ -341,6 +341,11 @@ const resetRegisterForm = () => {
   }
   return ''; 
 };
+
+const fetchLikedPosts = async () => {
+    const { data, error } = await useFetch(`/api/liked?username=${loginUsername.value}`);
+    likedPosts.value = data.value.likedPictures || [];
+  };
   
   // Initial fetch
   watch(() => mainstore.isAuthenticated, async (newVal, oldVal) => {
@@ -350,9 +355,11 @@ const resetRegisterForm = () => {
     console.log("IsAuthenticated watch", mainstore.isAuthenticated)
   })
 
-  // watch(mainstore.showLikedPictures, async (newVal, oldVal) => {
-  //   if (newVal) {
-  //     await mainstore.fetchLikedPosts()
-  //   }
-  // })
+  watch(showLikedPictures, async (newVal, oldVal) => {
+    if (newVal) {
+      await fetchLikedPosts()
+    }
+    console.log("likes watch", newVal)
+  })
   </script>
+

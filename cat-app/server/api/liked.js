@@ -41,9 +41,15 @@ export default defineEventHandler(async (event) => {
     // Uses JOIN to combine image data with likes and subquery to resolve username to userId
 
     const likedPictures = await db.all(
-      'SELECT * FROM images i JOIN likes l on i.id = l.imageId WHERE userId = (SELECT id from users where username = ? )',
+      `SELECT i.id AS id, i.userId as userId, i.title AS title, i.description AS description, i.keywords AS keywords, i.path as path
+      , CASE WHEN l.userId IS NOT NULL THEN TRUE ELSE FALSE END AS liked, COUNT(l.imageId) AS likes
+      FROM images i JOIN likes l ON i.id = l.imageId WHERE l.userId = (SELECT id from users where username = ?)
+      GROUP BY i.id`,
       [username]
     );
+
+    // SELECT i.id AS id, i.userId as userId, i.title AS title, i.description AS description, i.keywords AS keywords, i.path as path, CASE WHEN l.userId IS NOT NULL THEN TRUE ELSE FALSE END AS liked, COUNT(l.imageId) AS likes FROM images i JOIN likes l ON i.id = l.imageId WHERE l.userId = (SELECT id from users where username = 'shad') GROUP BY i.id
+
      // Return successful response with liked pictures
     return {
       success: true,

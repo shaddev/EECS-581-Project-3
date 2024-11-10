@@ -5,7 +5,7 @@ import { useFetch } from '#app';
 export const useStore = defineStore('store', {
   state: () => ({
     isAuthenticated: false,
-    showLikedPictures: ref(false),
+    //showLikedPictures: ref(false),
     feedPosts: ref([]),
     likedPosts: ref([]),
     loginUsername: ref(''), // Assuming you have this state
@@ -17,9 +17,9 @@ export const useStore = defineStore('store', {
       });
       this.feedPosts = data.value.userPictures.concat(data.value.globalPictures) || [];
     },
-    async fetchLikedPosts() {
-      const { data, error } = await useFetch(`/api/liked?username=${this.loginUsername}`);
-      this.likedPosts = data.value.likedPictures || [];
-    },
+    // async fetchLikedPosts() {
+    //   const { data, error } = await useFetch(`/api/liked?username=${this.loginUsername}`);
+    //   this.likedPosts = data.value.likedPictures || [];
+    // },
   },
 })
