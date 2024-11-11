@@ -82,7 +82,8 @@ export default defineEventHandler(async event => {
   // Create complete path for new file
   const newPath = path.join(uploadDir, newImageFilename);
 // Extract metadata from form fields
-  const { title, description, keywords, userId } = bodyFields;
+  var { title, description, keywords, userId } = bodyFields;
+  keywords=Array.from(new Set(keywords.split(","))).join(",");
   console.log("title is ", title)
   console.log("description is ", description)
   console.log("keywords is ", keywords)

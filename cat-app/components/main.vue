@@ -54,7 +54,7 @@
               <Input v-model="uploadTitle" placeholder="Title" class="w-full" required />
               <Input type="file" @change="handleFileUpload" accept=".jpg, .jpeg, .png" class="w-full" required />
               <Textarea v-model="uploadDescription" placeholder="Description (optional)" class="w-full" />
-              <Input v-model="uploadKeyword" @keyup.enter="addKeyword" placeholder="Keywords (optional)" class="w-full" />
+              <Textarea v-model="uploadKeyword" placeholder="Keywords (optional)" class="w-full" />
               <div class="flex flex-wrap space-x-2">
                 <span v-for="(keyword, index) in uploadKeywords" :key="index" class="bg-blue-200 px-2 py-1 rounded">
                   {{ keyword }} <Button @click="removeKeyword(index)" class="text-red-500">x</Button>
@@ -287,12 +287,11 @@ const resetRegisterForm = () => {
       uploadMessage.value = 'Please select an image to upload';
       return;
     }
-  
     const formData = new FormData();
     formData.append('title', uploadTitle.value);
     formData.append('image', uploadFile.value);
     formData.append('description', uploadDescription.value);
-    formData.append('keywords', uploadKeywords.value.join(','));
+    formData.append('keywords', uploadKeyword.value);
     formData.append('userId', mainstore.loginUsername);
   
     const { data, error } = await useFetch('/api/upload', {
