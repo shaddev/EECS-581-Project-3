@@ -1,101 +1,72 @@
 /**
- * Image Upload API Handler
+ * Image Search API Handler
  * 
- * An API endpoint handler that processes multipart form data to upload images
- * and store their metadata in the database. Handles both file system operations
- * and database updates.
+ * An API endpoint handler that retrieves image records from the database
+ * based on a search keyword provided as a query parameter.
+ * 
  * Author: Team 7
- * Date created: 10/27/2024
+ * Created: 11/10/2024
+ * 
  * preconditions
- *   - Multipart form data must contain:
- *     - image (File): The image file to upload
- *     - title (string): Image title
- *     - description (string): Image description
- *     - keywords (string): Image keywords
- *     - userId (string): Username of uploading user
+ *   - Request must contain:
+ *     - keyword (string): The search keyword to filter images
  *   - Database must be accessible
- *   - Write permissions for upload directory
+ *   - Images table must exist with columns:
+ *     - id (INTEGER)
+ *     - userId (INTEGER)
+ *     - title (TEXT)
+ *     - description (TEXT)
+ *     - keywords (TEXT)
+ *     - path (TEXT)
  * 
  * postconditions
  *   - Returns JSON object with:
- *     - success (boolean): Upload result
- *     - message (string): Status message
- *   - If successful:
- *     - Creates image file in uploads directory
- *     - Creates image record in database
+ *     - success (boolean): Search result status
+ *     - images (array): Array of image records matching the keyword
+ *     - message (string): Status message if search fails
+ *   - If successful, retrieves image records from the database that match the keyword
  * 
  * errors
- *   - File system errors (permissions, disk space)
- *   - Database errors
- *   - Invalid form data
- *   - Invalid user ID
+ *   - Database errors (e.g., query failures)
+ *   - Invalid or missing query parameter
+ *   - Database connection errors
  * 
  * sideEffects
- *   - Creates file in uploads directory
- *   - Creates database record
- *   - Creates upload directory if it doesn't exist
+ *   - Creates and closes database connection
  * 
  * invariants
- *   - File names are unique via timestamp addition
- *   - Upload directory structure is maintained
- *   - Database records match stored files
- * 
- * knownFaults
- *   - No file type validation
- *   - No file size limits
- *   - No cleanup of failed uploads
- *   - Generic error message doesn't specify failure reason
+ *   - Keyword search is performed using SQL LIKE operator
+ *   - Images are filtered based on the provided keyword
  **/
 
 import { initDb } from '../db';
-import { promises as fs } from 'fs';
-import path from 'path';
-import * as formidable from 'formidable';
 
 export default defineEventHandler(async event => {
-  // Initialize formidable for handling multipart form data
-  const form = new formidable.IncomingForm();
-  const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-// Set up upload directory path in public/uploads
-  await fs.mkdir(uploadDir, { recursive: true });
- // Read multipart form data from request
-  const fields = await readMultipartFormData(event);
-  //console.log(fields)
-// Process form fields into more manageable object
-  const bodyFields = {}
+  const db = await initDb();
+  const { keyword } = getQuery(event);
 
-// Separate image data from other fields
-  fields.forEach(field=> {
-    if (field.name !== 'image'){
-      bodyFields[field.name] = field.data.toString()
-    } else {
-      bodyFields[field.name] = {data: field.data}
-    }
-    
-  })
+  if (!keyword) {
+    return {
+      success: false,
+      message: 'Keyword is required'
+    };
+  }
 
-  console.log(bodyFields)
-// Extract metadata from form fields
-  var { keywords } = bodyFields;
-  keywords=Array.from(new Set(keywords.split(","))).join(",");
-  console.log("keywords is ", keywords)
+  try {
+    const images = await db.all(
+      `SELECT * FROM images WHERE keywords LIKE ?`,
+      [`%${keyword}%`]
+    );
 
-  /*try{
-     // Write file to upload directory
-    await fs.writeFile(newPath, file.data)
-    // Initialize database connection
-    const db = await initDb();
-    // Insert image metadata into database
-    // Uses subquery to get user ID from username
-      await db.run(
-        'INSERT INTO images (userId, title, description, keywords, path) VALUES ((SELECT id FROM users WHERE username = ?), ?, ?, ?, ?)',
-        [userId, title, description, keywords, newImageFilename]
-      );
-      // Return success response
-    return { success: true, message: 'File uploaded successfully' };
-  } catch (err) {
-    console.log(err);
-    return { success: false, message: 'File upload filed' };
-
-  }*/
+    return {
+      success: true,
+      images
+    };
+  } catch (error) {
+    console.error('Error fetching images:', error);
+    return {
+      success: false,
+      message: 'Error fetching images'
+    };
+  }
 });

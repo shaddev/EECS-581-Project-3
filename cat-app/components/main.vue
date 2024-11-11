@@ -181,7 +181,7 @@
   import { useFetch } from '#app';
 
   import { useStore } from '@/stores/store'
-
+  // Getting the main store instance
   const mainstore = useStore()
   const isAuthenticated = mainstore.isAuthenticated.valueOf()
   console.log("isAuthenticated setup", isAuthenticated)
@@ -202,6 +202,7 @@
   const currentMessage = ref('')
   const chatUser = ref('') // the other user
 
+  // This is the password validation function
   const validatePassword = (password) => {
   if (password.length < 8) return "Password must be at least 8 characters";
   if (!/[A-Z]/.test(password)) return "Password must contain an uppercase letter";
@@ -218,7 +219,7 @@
   const registerDescription = ref('');
   const registerAddress = ref('');
   const registerMessage = ref('');
-  
+// Register function is to handle user registration
 const register = async () => {
   registerErrors.value = {};
   loading.value = true;
@@ -264,6 +265,7 @@ const register = async () => {
   }
 };
 
+// Resets registration form fields
 const resetRegisterForm = () => {
   registerUsername.value = '';
   registerPassword.value = '';
@@ -322,17 +324,19 @@ const resetRegisterForm = () => {
     uploadFile.value = event.target.files[0];
   };
   
+  // Adding a keyword to the list for image metadata
   const addKeyword = () => {
     if (uploadKeyword.value) {
       uploadKeywords.value.push(uploadKeyword.value);
       uploadKeyword.value = '';
     }
   };
-  
+  // To remove a keyword from the list
   const removeKeyword = (index) => {
     uploadKeywords.value.splice(index, 1);
   };
   
+  // This is the function to upload cat pitcure to send image data to server 
   const uploadCatPicture = async () => {
     if (!uploadFile.value) {
       uploadMessage.value = 'Please select an image to upload';
@@ -358,19 +362,22 @@ const resetRegisterForm = () => {
   };
 
   const searchCatPicture = async () => {
-    const formData = new FormData();
-    formData.append('keywords', searchKeyword.value);
-    console.log(searchKeyword);
-  
-    const { data, error } = await useFetch('/api/search', {
-      method: 'POST',
-      body: formData,
-    });
-  
-    if (data.value?.success) {
-      mainstore.fetchFeedPosts();
+  const searchKeywordValue = searchKeyword.value;
+  console.log(searchKeywordValue);
+
+  const { data, error } = await useFetch(`/api/search?keyword=${encodeURIComponent(searchKeywordValue)}`, {
+    method: 'GET',
+  });
+
+  if (data.value?.success) {
+    if (data.value.images.length > 0) {
+      mainstore.feedPosts = data.value.images;
+    } else {
+      alert('No images matched the search query.');
+      await mainstore.fetchFeedPosts();
     }
-  };
+  }
+};
 
   const sendMessage = async () => {
     const { data } = await useFetch('/api/sendmessage', {
@@ -444,6 +451,7 @@ const resetRegisterForm = () => {
   return ''; 
 };
 
+// Fetch like dposts for the logged in user
 const fetchLikedPosts = async () => {
     const { data, error } = await useFetch(`/api/liked?username=${loginUsername.value}`);
     likedPosts.value = data.value.likedPictures || [];
@@ -456,7 +464,7 @@ const fetchLikedPosts = async () => {
     }
     console.log("IsAuthenticated watch", mainstore.isAuthenticated)
   })
-
+  // watcher to load liked posts when showing liked pictures is toggled 
   watch(showLikedPictures, async (newVal, oldVal) => {
     if (newVal) {
       await fetchLikedPosts()
