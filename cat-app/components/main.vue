@@ -118,18 +118,42 @@
             </div>
           </DialogContent>
         </Dialog>
-  
         <div v-if="mainstore.isAuthenticated.valueOf() && !showUpload && !showLikedPictures">
-          <h1 class="text-2xl font-semibold mb-4">Your Feed</h1>
-          <div v-for="post in mainstore.feedPosts" :key="post.id" class="mb-4 p-4 bg-white rounded shadow">
-            <h2 class="text-lg font-semibold">{{ post.title }}</h2>
-            <img :src="getImageUrl(post.path)" alt="Cat Picture" class="w-full h-auto rounded" />
-            <p v-if="post.description" class="mt-2 text-gray-600">{{ post.description }}</p>
-            <Button @click="toggleLike(post)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.liked ? 'Unlike' : 'Like' }}</Button>
-            <Button @click="toggleShowLikedUsers(post)" class="mt-2 text-blue-600 hover:bg-blue-100">Liked Users</Button>
-            <p class="mt-1">{{ post.likes }} likes</p>
-          </div>
+          <Tabs default-value="mainfeed" class="w-[400px]">
+            <TabsList>
+              <TabsTrigger value="mainfeed">
+                Main
+              </TabsTrigger>
+              <TabsTrigger value="personalfeed">
+                Personal
+              </TabsTrigger>
+            </TabsList>
+              <TabsContent value="mainfeed">
+                    <h1 class="text-2xl font-semibold mb-4">All Feed</h1>
+                    <div v-for="post in mainstore.feedPosts" :key="post.id" class="mb-4 p-4 bg-white rounded shadow">
+                      <h2 class="text-lg font-semibold">{{ post.title }}</h2>
+                      <img :src="getImageUrl(post.path)" alt="Cat Picture" class="w-full h-auto rounded" />
+                      <p v-if="post.description" class="mt-2 text-gray-600">{{ post.description }}</p>
+                      <Button @click="toggleLike(post)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.liked ? 'Unlike' : 'Like' }}</Button>
+                      <Button @click="toggleShowLikedUsers(post)" class="mt-2 text-blue-600 hover:bg-blue-100">Liked Users</Button>
+                      <p class="mt-1">{{ post.likes }} likes</p>
+                    </div>
+              </TabsContent>
+              <TabsContent value="personalfeed">
+                <h1 class="text-2xl font-semibold mb-4">Personal Feed</h1>
+                <div v-for="post in mainstore.feedPosts.filter(post => post.liked === 1)" :key="post.id" class="mb-4 p-4 bg-white rounded shadow">
+                  <h2 class="text-lg font-semibold">{{ post.title }}</h2>
+                  <img :src="getImageUrl(post.path)" alt="Cat Picture" class="w-full h-auto rounded" />
+                  <p v-if="post.description" class="mt-2 text-gray-600">{{ post.description }}</p>
+                  <Button @click="toggleLike(post)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.liked ? 'Unlike' : 'Like' }}</Button>
+                  <Button @click="toggleShowLikedUsers(post)" class="mt-2 text-blue-600 hover:bg-blue-100">Liked Users</Button>
+                  <p class="mt-1">{{ post.likes }} likes</p>
+                </div>
+              </TabsContent>
+            </Tabs>
         </div>
+
+
       </main>
     </div>
   </template>
