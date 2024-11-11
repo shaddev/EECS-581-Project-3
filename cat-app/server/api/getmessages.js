@@ -36,9 +36,10 @@ export default defineEventHandler(async (event) => {
 
 
     const messages = await db.all(
-        `SELECT * FROM chat c WHERE (c.sourceUserId = ? AND c.receivingUserId = ?) OR (c.sourceUserId = ? AND c.receivingUserId = ?)
+        `SELECT c.message AS message, CASE WHEN c.sourceUserId = ? THEN "${sourceUsername}" ELSE "${receivingUsername}" END AS username
+        FROM chat c WHERE (c.sourceUserId = ? AND c.receivingUserId = ?) OR (c.sourceUserId = ? AND c.receivingUserId = ?)
             ORDER BY c.sentTime`,
-          [sourceUserId, receivingUserId, receivingUserId, sourceUserId]
+          [sourceUserId, sourceUserId, receivingUserId, receivingUserId, sourceUserId]
         );
 
         console.log('messages are ', messages)

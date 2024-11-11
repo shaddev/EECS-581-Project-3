@@ -114,7 +114,7 @@
             <Textarea v-model="currentMessage" class="w-full" />
             <Button @click="sendMessage()" class="mt-2 text-blue-600 hover:bg-blue-100">Send</Button>
             <div v-for="chatMessage in currentChat" :key="chatMessage.id" class="mb-4 p-4 bg-white rounded shadow">
-              <h2 class="text-lg font-semibold">{{ chatMessage.message }}</h2>
+              <h2 class="text-lg font-semibold">{{ chatMessage.username + ": " + chatMessage.message }}</h2>
             </div>
           </DialogContent>
         </Dialog>
