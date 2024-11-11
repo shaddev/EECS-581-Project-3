@@ -76,7 +76,21 @@
               <img :src="getImageUrl(post.path)" alt="Cat Picture" class="rounded" style="width: auto; height: 200px" />
               <p v-if="post.description" class="mt-2 text-gray-600">{{ post.description }}</p>
               <Button @click="toggleLike(post)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.liked ? 'Unlike' : 'Like' }}</Button>
+              <Button @click="toggleShowLikedUsers(post)" class="mt-2 text-blue-600 hover:bg-blue-100">Liked Users</Button>
               <p class="mt-1">{{ post.likes }} likes</p>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+
+        <Dialog v-model:open="showLikedUsers">
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Liked Users</DialogTitle>
+              <DialogClose></DialogClose>
+            </DialogHeader>
+            <div v-for="user in likedUsers" :key="user.id" class="mb-4 p-4 bg-white rounded shadow">
+              <h2 class="text-lg font-semibold">{{ user.username }}</h2>
             </div>
           </DialogContent>
         </Dialog>
@@ -88,6 +102,7 @@
             <img :src="getImageUrl(post.path)" alt="Cat Picture" class="w-full h-auto rounded" />
             <p v-if="post.description" class="mt-2 text-gray-600">{{ post.description }}</p>
             <Button @click="toggleLike(post)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.liked ? 'Unlike' : 'Like' }}</Button>
+            <Button @click="toggleShowLikedUsers(post)" class="mt-2 text-blue-600 hover:bg-blue-100">Liked Users</Button>
             <p class="mt-1">{{ post.likes }} likes</p>
           </div>
         </div>
@@ -151,6 +166,8 @@
   const showLogin = ref(false);
   const showUpload = ref(false);
   const showLikedPictures = ref(false);
+  const showLikedUsers = ref(false);
+  const likedUsers = ref([]);
   // const isAuthenticated = ref(false);
   const registerErrors = ref({});
   const loading = ref(false);
@@ -330,6 +347,12 @@ const resetRegisterForm = () => {
       }
     }
   };
+
+  const toggleShowLikedUsers = async (post) => {
+    const { data, error } = await useFetch(`/api/likedusers?postId=${post.id}`);
+    likedUsers.value = data.value.likedUsers;
+    showLikedUsers.value = true;
+  }
   
 
 
