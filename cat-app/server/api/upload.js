@@ -84,6 +84,9 @@ export default defineEventHandler(async event => {
 // Extract metadata from form fields
   const { title, description, keywords, userId } = bodyFields;
   console.log("title is ", title)
+  console.log("description is ", description)
+  console.log("keywords is ", keywords)
+  console.log("userId is ", userId)
 
   try{
      // Write file to upload directory
