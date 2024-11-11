@@ -337,19 +337,22 @@ const resetRegisterForm = () => {
   };
 
   const searchCatPicture = async () => {
-    const formData = new FormData();
-    formData.append('keywords', searchKeyword.value);
-    console.log(searchKeyword);
-  
-    const { data, error } = await useFetch('/api/search', {
-      method: 'POST',
-      body: formData,
-    });
-  
-    if (data.value?.success) {
-      mainstore.fetchFeedPosts();
+  const searchKeywordValue = searchKeyword.value;
+  console.log(searchKeywordValue);
+
+  const { data, error } = await useFetch(`/api/search?keyword=${encodeURIComponent(searchKeywordValue)}`, {
+    method: 'GET',
+  });
+
+  if (data.value?.success) {
+    if (data.value.images.length > 0) {
+      mainstore.feedPosts = data.value.images;
+    } else {
+      alert('No images matched the search query.');
+      await mainstore.fetchFeedPosts();
     }
-  };
+  }
+};
 
   
   // Feed and Liked Pictures logic
