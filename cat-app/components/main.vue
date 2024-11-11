@@ -12,7 +12,14 @@
           </nav>
         </div>
       </header>
-  
+
+            <form v-if="mainstore.isAuthenticated.valueOf()"  @submit.prevent="searchCatPicture" class="space-y-4">
+              <Textarea v-model="searchKeyword" placeholder="Keywords" class="w-full" />
+              <Button type="submit" class="w-full bg-blue-600 text-white hover:bg-blue-700">Search</Button>
+            </form>
+
+
+
       <main class="flex-grow max-w-6xl mx-auto p-4">
         <Dialog v-model:open="showRegister">
           <DialogContent>
@@ -44,6 +51,9 @@
             <p v-if="loginMessage" class="text-red-600">{{ loginMessage }}</p>
           </DialogContent>
         </Dialog>
+
+        
+
   
         <Dialog v-model:open="showUpload">
           <DialogContent>
@@ -267,6 +277,9 @@ const resetRegisterForm = () => {
   const uploadKeywords = ref([]);
   const uploadMessage = ref('');
   
+  // Search Cat Picture logic
+  const searchKeyword = ref('');
+  
   const handleFileUpload = (event) => {
     uploadFile.value = event.target.files[0];
   };
@@ -305,6 +318,22 @@ const resetRegisterForm = () => {
       mainstore.fetchFeedPosts();
     }
   };
+
+  const searchCatPicture = async () => {
+    const formData = new FormData();
+    formData.append('keywords', searchKeyword.value);
+    console.log(searchKeyword);
+  
+    const { data, error } = await useFetch('/api/search', {
+      method: 'POST',
+      body: formData,
+    });
+  
+    if (data.value?.success) {
+      mainstore.fetchFeedPosts();
+    }
+  };
+
   
   // Feed and Liked Pictures logic
   const feedPosts = mainstore.feedPosts;
