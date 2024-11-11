@@ -397,6 +397,7 @@ const resetRegisterForm = () => {
   return ''; 
 };
 
+// Fetch like dposts for the logged in user
 const fetchLikedPosts = async () => {
     const { data, error } = await useFetch(`/api/liked?username=${loginUsername.value}`);
     likedPosts.value = data.value.likedPictures || [];
@@ -409,7 +410,7 @@ const fetchLikedPosts = async () => {
     }
     console.log("IsAuthenticated watch", mainstore.isAuthenticated)
   })
-
+  // watcher to load liked posts when showing liked pictures is toggled 
   watch(showLikedPictures, async (newVal, oldVal) => {
     if (newVal) {
       await fetchLikedPosts()
