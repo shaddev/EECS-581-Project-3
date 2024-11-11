@@ -167,7 +167,7 @@
   import { useFetch } from '#app';
 
   import { useStore } from '@/stores/store'
-
+  // Getting the main store instance
   const mainstore = useStore()
   const isAuthenticated = mainstore.isAuthenticated.valueOf()
   console.log("isAuthenticated setup", isAuthenticated)
@@ -182,6 +182,7 @@
   const registerErrors = ref({});
   const loading = ref(false);
 
+  // This is the password validation function
   const validatePassword = (password) => {
   if (password.length < 8) return "Password must be at least 8 characters";
   if (!/[A-Z]/.test(password)) return "Password must contain an uppercase letter";
@@ -198,7 +199,7 @@
   const registerDescription = ref('');
   const registerAddress = ref('');
   const registerMessage = ref('');
-  
+// Register function is to handle user registration
 const register = async () => {
   registerErrors.value = {};
   loading.value = true;
@@ -244,6 +245,7 @@ const register = async () => {
   }
 };
 
+// Resets registration form fields
 const resetRegisterForm = () => {
   registerUsername.value = '';
   registerPassword.value = '';
@@ -301,17 +303,19 @@ const resetRegisterForm = () => {
     uploadFile.value = event.target.files[0];
   };
   
+  // Adding a keyword to the list for image metadata
   const addKeyword = () => {
     if (uploadKeyword.value) {
       uploadKeywords.value.push(uploadKeyword.value);
       uploadKeyword.value = '';
     }
   };
-  
+  // To remove a keyword from the list
   const removeKeyword = (index) => {
     uploadKeywords.value.splice(index, 1);
   };
   
+  // This is the function to upload cat pitcure to send image data to server 
   const uploadCatPicture = async () => {
     if (!uploadFile.value) {
       uploadMessage.value = 'Please select an image to upload';
