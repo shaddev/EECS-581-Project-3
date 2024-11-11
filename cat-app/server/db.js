@@ -60,6 +60,13 @@ export const initDb = async () => {
       FOREIGN KEY (userId) REFERENCES users(id),
       FOREIGN KEY (imageID) REFERENCES images(id),
       PRIMARY KEY (userId, imageId) );
+    CREATE TABLE IF NOT EXISTS chat (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      sourceUserId INTEGER,
+      receivingUserId INTEGER,
+      message TEXT,
+      sentTime INTEGER
+      )
   `);
 
   return db;

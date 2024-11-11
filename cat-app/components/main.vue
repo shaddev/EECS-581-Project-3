@@ -9,6 +9,7 @@
             <Button v-if="mainstore.isAuthenticated.valueOf()" @click="logout" variant="destructive">Logout</Button>
             <Button v-if="mainstore.isAuthenticated.valueOf()" @click="showUpload = true" variant="default">Upload Cat Picture</Button>
             <Button v-if="mainstore.isAuthenticated.valueOf()" @click="showLikedPictures = true" variant="ghost">Liked Pictures</Button>
+            <Button v-if="mainstore.isAuthenticated.valueOf()" @click="showChat = true" variant="ghost">Chat</Button>
           </nav>
         </div>
       </header>
@@ -51,9 +52,6 @@
             <p v-if="loginMessage" class="text-red-600">{{ loginMessage }}</p>
           </DialogContent>
         </Dialog>
-
-        
-
   
         <Dialog v-model:open="showUpload">
           <DialogContent>
@@ -101,6 +99,22 @@
             </DialogHeader>
             <div v-for="user in likedUsers" :key="user.id" class="mb-4 p-4 bg-white rounded shadow">
               <h2 class="text-lg font-semibold">{{ user.username }}</h2>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog v-model:open="showChat">
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Chat</DialogTitle>
+              <DialogClose></DialogClose>
+            </DialogHeader>
+            <Textarea v-model="chatUser" class="w-full" />
+            <Button @click="connectChat()" class="mt-2 text-blue-600 hover:bg-blue-100">Connect</Button>
+            <Textarea v-model="currentMessage" class="w-full" />
+            <Button @click="sendMessage()" class="mt-2 text-blue-600 hover:bg-blue-100">Send</Button>
+            <div v-for="chatMessage in currentChat" :key="chatMessage.id" class="mb-4 p-4 bg-white rounded shadow">
+              <h2 class="text-lg font-semibold">{{ chatMessage.message }}</h2>
             </div>
           </DialogContent>
         </Dialog>
@@ -182,6 +196,12 @@
   const registerErrors = ref({});
   const loading = ref(false);
 
+  //chat refs
+  const showChat = ref(false)
+  const currentChat = ref([])
+  const currentMessage = ref('')
+  const chatUser = ref('') // the other user
+
   const validatePassword = (password) => {
   if (password.length < 8) return "Password must be at least 8 characters";
   if (!/[A-Z]/.test(password)) return "Password must contain an uppercase letter";
@@ -258,6 +278,7 @@ const resetRegisterForm = () => {
   const loginUsername = ref('');
   const loginPassword = ref('');
   const loginMessage = ref('');
+  const curInterval = ref(null)
   
   const login = async () => {
     const { data } = await useFetch('/api/login', {
@@ -350,6 +371,36 @@ const resetRegisterForm = () => {
       mainstore.fetchFeedPosts();
     }
   };
+
+  const sendMessage = async () => {
+    const { data } = await useFetch('/api/sendmessage', {
+      method: 'POST',
+      body: { sourceUsername: loginUsername.value, receivingUsername: chatUser.value, message: currentMessage.value },
+    });
+    currentMessage.value = '';
+  }
+
+  const connectChat = async () => {
+    const sourceUsername = loginUsername.value;
+    const receivingUsername = chatUser.value;
+
+    console.log('source is', sourceUsername, 'receiver is', receivingUsername);
+  
+    const { data, error } = await useFetch(`/api/getmessages?sourceUsername=${sourceUsername}&receivingUsername=${receivingUsername}`);
+  
+    if (data.value?.success) {
+
+      currentChat.value = data.value;
+      
+      if (clearInterval.value !== null){
+        clearInterval(curInterval);
+      }
+      curInterval.value = setInterval(async () => {
+        const { data, error } = await useFetch(`/api/getmessages?sourceUsername=${sourceUsername}&receivingUsername=${receivingUsername}`);
+        currentChat.value = data.value?.messages;
+      }, 5000);
+    }
+  }
 
   
   // Feed and Liked Pictures logic
