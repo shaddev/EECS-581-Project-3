@@ -83,6 +83,7 @@
               <h2 class="text-lg font-semibold">{{ post.title }}</h2>
               <img :src="getImageUrl(post.path)" alt="Cat Picture" class="rounded" style="width: auto; height: 200px" />
               <p v-if="post.description" class="mt-2 text-gray-600">{{ post.description }}</p>
+              <Button @click="toggleShowProfile(post)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.username }}</Button>
               <Button @click="toggleLike(post)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.liked ? 'Unlike' : 'Like' }}</Button>
               <Button @click="toggleShowLikedUsers(post)" class="mt-2 text-blue-600 hover:bg-blue-100">Liked Users</Button>
               <p class="mt-1">{{ post.likes }} likes</p>
@@ -90,6 +91,25 @@
           </DialogContent>
         </Dialog>
 
+        <Dialog v-model:open="showProfile">
+          <DialogContent class="overflow-auto h-3/4" style="height: 400px">
+            <DialogHeader>
+              <DialogTitle>User Profile</DialogTitle>
+              <DialogClose></DialogClose>
+            </DialogHeader>
+            <h2 class="text-lg font-semibold">{{ currentProfile.username }}</h2>
+            <h2 class="text-lg font-semibold">{{ "Address: " + currentProfile.address }}</h2>
+            <h2 class="text-lg font-semibold">{{ "Description: " + currentProfile.description }}</h2>
+            <div v-for="post in profileImages" :key="post.id" class="mb-4 p-4 bg-white rounded shadow">
+              <h2 class="text-lg font-semibold">{{ post.title }}</h2>
+              <img :src="getImageUrl(post.path)" alt="Cat Picture" class="rounded" style="width: auto; height: 200px" />
+              <p v-if="post.description" class="mt-2 text-gray-600">{{ post.description }}</p>
+              <Button @click="toggleLike(post)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.liked ? 'Unlike' : 'Like' }}</Button>
+              <Button @click="toggleShowLikedUsers(post)" class="mt-2 text-blue-600 hover:bg-blue-100">Liked Users</Button>
+              <p class="mt-1">{{ post.likes }} likes</p>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <Dialog v-model:open="showLikedUsers">
           <DialogContent>
@@ -134,6 +154,7 @@
                       <h2 class="text-lg font-semibold">{{ post.title }}</h2>
                       <img :src="getImageUrl(post.path)" alt="Cat Picture" class="w-full h-auto rounded" />
                       <p v-if="post.description" class="mt-2 text-gray-600">{{ post.description }}</p>
+                      <Button @click="toggleShowProfile(post)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.username }}</Button>
                       <Button @click="toggleLike(post)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.liked ? 'Unlike' : 'Like' }}</Button>
                       <Button @click="toggleShowLikedUsers(post)" class="mt-2 text-blue-600 hover:bg-blue-100">Liked Users</Button>
                       <p class="mt-1">{{ post.likes }} likes</p>
@@ -216,7 +237,13 @@
   const showLikedPictures = ref(false);
   const showLikedUsers = ref(false);
   const likedUsers = ref([]);
+
+  // profile refs
+  const showProfile = ref(false);
+  const currentProfile = ref(null);
+  const profileImages = ref([]);
   // const isAuthenticated = ref(false);
+
   const registerErrors = ref({});
   const loading = ref(false);
 
@@ -463,8 +490,13 @@ const resetRegisterForm = () => {
     likedUsers.value = data.value.likedUsers;
     showLikedUsers.value = true;
   }
-  
 
+  const toggleShowProfile = async (post) => {
+    const { data, error } = await useFetch(`/api/profile?username=${post.username}`);
+    showProfile.value = true;
+    currentProfile.value = data.value.profile;
+    profileImages.value = data.value.userImages;
+  }
 
   console.log(mainstore.feedPosts)
 

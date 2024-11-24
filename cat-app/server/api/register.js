@@ -45,7 +45,7 @@ import { initDb } from '../db';
 export default defineEventHandler(async (event) => {
   // Extract registration credentials from request body
   const body = await readBody(event);
-  const { username, password } = body;
+  const { username, password, description, address } = body;
  // Hash password with bcrypt using 10 rounds of salt
   const hashedPassword = await bcrypt.hash(password, 10);
   // Initialize database connection
@@ -54,7 +54,8 @@ export default defineEventHandler(async (event) => {
   try {
     // Attempt to insert new user record
     // Username uniqueness is enforced by database UNIQUE constraint
-    await db.run('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashedPassword]);
+    await db.run('INSERT INTO users (username, password, description, address) VALUES (?, ?, ?, ?)', 
+      [username, hashedPassword, description, address]);
      // Return success response if insert succeeds
     return { success: true, message: 'User registered successfully' };
   } catch (error) {

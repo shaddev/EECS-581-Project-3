@@ -18,15 +18,17 @@ export default defineEventHandler(async (event) => {
   try {
     const userPictures = await db.all(
       `SELECT i.id AS id, i.userId as userId, i.title AS title, i.description AS description, i.keywords AS keywords, i.path as path
-      , CASE WHEN l.userId IS NOT NULL THEN TRUE ELSE FALSE END AS liked, COUNT(l.imageId) AS likes
-      FROM images i LEFT JOIN likes l ON i.id = l.imageId WHERE i.userId = (SELECT id from users where username = ?) GROUP BY i.id`,
+      , CASE WHEN l.userId IS NOT NULL THEN TRUE ELSE FALSE END AS liked, COUNT(l.imageId) AS likes, u.username as username
+      FROM images i LEFT JOIN likes l ON i.id = l.imageId
+      JOIN users u ON i.userId = u.id WHERE i.userId = (SELECT id from users where username = ?) GROUP BY i.id`,
       [username]
     );
 
     const globalPictures = await db.all(
       `SELECT i.id AS id, i.userId as userId, i.title AS title, i.description AS description, i.keywords AS keywords, i.path as path
-      , CASE WHEN l.userId IS NOT NULL THEN TRUE ELSE FALSE END AS liked, COUNT(l.imageId) AS likes
-      FROM images i LEFT JOIN likes l ON i.id = l.imageId WHERE i.userId != (SELECT id from users where username = ?) GROUP BY i.id`,
+      , CASE WHEN l.userId IS NOT NULL THEN TRUE ELSE FALSE END AS liked, COUNT(l.imageId) AS likes, u.username as username
+      FROM images i LEFT JOIN likes l ON i.id = l.imageId
+      JOIN users u ON i.userId = u.id WHERE i.userId != (SELECT id from users where username = ?) GROUP BY i.id`,
       [username]
     );
 

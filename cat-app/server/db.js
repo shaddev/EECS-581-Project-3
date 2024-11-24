@@ -43,7 +43,9 @@ export const initDb = async () => {
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE,
-      password TEXT
+      password TEXT,
+      address TEXT,
+      description TEXT
     );
     CREATE TABLE IF NOT EXISTS images (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
