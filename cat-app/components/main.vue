@@ -9,6 +9,7 @@
             <Button v-if="mainstore.isAuthenticated.valueOf()" @click="logout" variant="destructive">Logout</Button>
             <Button v-if="mainstore.isAuthenticated.valueOf()" @click="showUpload = true" variant="default">Upload Cat Picture</Button>
             <Button v-if="mainstore.isAuthenticated.valueOf()" @click="showLikedPictures = true" variant="ghost">Liked Pictures</Button>
+            <Button v-if="mainstore.isAuthenticated.valueOf()" @click="fetchMatches" variant="ghost">Generate Matches</Button>
             <Button v-if="mainstore.isAuthenticated.valueOf()" @click="showChat = true" variant="ghost">Chat</Button>
             <Button v-if="mainstore.isAuthenticated.valueOf()" @click="showSearchUsers = true" variant="ghost">Search User</Button>
             <Button v-if="mainstore.isAuthenticated.valueOf()" @click="openMyProfile" variant="ghost">My Profile</Button>
@@ -89,6 +90,31 @@
               <Button @click="toggleLike(post)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.liked ? 'Unlike' : 'Like' }}</Button>
               <Button @click="toggleShowLikedUsers(post)" class="mt-2 text-blue-600 hover:bg-blue-100">Liked Users</Button>
               <p class="mt-1">{{ post.likes }} likes</p>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog v-model:open="showMatches">
+          <DialogContent class="max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Matches</DialogTitle>
+            </DialogHeader>
+            <div v-if="matches.length === 0" class="text-gray-600">No matches found.</div>
+            <div v-else>
+              <p class="text-gray-600">
+                You have matched with {{ new Set(matches.map(match => match.matchUsername)).size }} 
+                {{ new Set(matches.map(match => match.matchUsername)).size === 1 ? 'user' : 'users' }}:
+              </p>
+              <p v-for="match in [...new Set(matches.map(match => match.matchUsername))]" :key="match" class="text-gray-600">
+                Username: {{ match }}
+              </p>
+              <p>Matched Images:</p>
+              <div v-for="match in matches" :key="match.matchUsername + match.matchTitle" class="mb-4 p-4 bg-white rounded shadow">
+                <h2 class="text-lg font-semibold">{{ match.matchTitle }}</h2>
+                <img :src="getImageUrl(match.matchPath)" alt="Cat Picture" class="w-full h-auto rounded" />
+                <p v-if="match.matchDescription" class="mt-2 text-gray-600">{{ match.matchDescription }}</p>
+                <p class="mt-1 text-gray-600">Liked by: {{ match.matchUsername }}</p>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
@@ -303,6 +329,9 @@
   const currentChat = ref([])
   const currentMessage = ref('')
   const chatUser = ref('') // the other user
+
+  //matches refs
+  const showMatches = ref(false)
 
   // This is the password validation function
   const validatePassword = (password) => {
@@ -590,6 +619,19 @@ const resetRegisterForm = () => {
     return `${window.location.origin}/uploads/${path}`;
   }
   return ''; 
+};
+
+// Matches logic
+const matches = ref([]);
+
+const fetchMatches = async () => {
+  const { data, error } = await useFetch(`/api/getmatches?username=${loginUsername.value}`);
+  if (data.value?.success) {
+    matches.value = data.value.matches;
+  } else {
+    matches.value = [];
+  }
+  showMatches.value = true;
 };
 
 // Fetch like dposts for the logged in user
