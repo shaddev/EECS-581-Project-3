@@ -17,10 +17,12 @@ export default defineEventHandler(async (event) => {
   try {
     // Query to fetch all users that liked a specific post
 
-    const profile = await db.all(
+    const profile = await db.get(
     `SELECT u.username as username, u.address as address, u.description as description from users u WHERE u.username = ?`,
       [username]
     );
+
+    console.log("profile is ", profile)
 
     const userImages = await db.all(
       `SELECT i.id AS id, i.userId as userId, i.title AS title, i.description AS description, i.keywords AS keywords, i.path as path

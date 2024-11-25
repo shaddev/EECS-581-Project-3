@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
  // Verify password if user exists using secure bcrypt comparison
   if (user && (await bcrypt.compare(password, user.password))) {
      // Return success response for valid credentials
-    return { success: true, message: 'Login successful' };
+    return { success: true, message: 'Login successful'};
   } else {
     return { success: false, message: 'Invalid username or password' };
   }

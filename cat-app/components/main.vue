@@ -10,6 +10,8 @@
             <Button v-if="mainstore.isAuthenticated.valueOf()" @click="showUpload = true" variant="default">Upload Cat Picture</Button>
             <Button v-if="mainstore.isAuthenticated.valueOf()" @click="showLikedPictures = true" variant="ghost">Liked Pictures</Button>
             <Button v-if="mainstore.isAuthenticated.valueOf()" @click="showChat = true" variant="ghost">Chat</Button>
+            <Button v-if="mainstore.isAuthenticated.valueOf()" @click="showSearchUsers = true" variant="ghost">Search User</Button>
+            <Button v-if="mainstore.isAuthenticated.valueOf()" @click="openMyProfile" variant="ghost">My Profile</Button>
           </nav>
         </div>
       </header>
@@ -83,7 +85,7 @@
               <h2 class="text-lg font-semibold">{{ post.title }}</h2>
               <img :src="getImageUrl(post.path)" alt="Cat Picture" class="rounded" style="width: auto; height: 200px" />
               <p v-if="post.description" class="mt-2 text-gray-600">{{ post.description }}</p>
-              <Button @click="toggleShowProfile(post)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.username }}</Button>
+              <Button @click="toggleShowProfile(post.username)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.username }}</Button>
               <Button @click="toggleLike(post)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.liked ? 'Unlike' : 'Like' }}</Button>
               <Button @click="toggleShowLikedUsers(post)" class="mt-2 text-blue-600 hover:bg-blue-100">Liked Users</Button>
               <p class="mt-1">{{ post.likes }} likes</p>
@@ -91,8 +93,22 @@
           </DialogContent>
         </Dialog>
 
+        <Dialog v-model:open="showSearchUsers">
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Search User</DialogTitle>
+              <DialogClose></DialogClose>
+            </DialogHeader>
+            <Textarea v-model="searchedUser" class="w-full" />
+            <Button @click="searchUsers()" class="mt-2 text-blue-600 hover:bg-blue-100">Search</Button>
+            <div v-for="user in searchedUsers" :key="user.id" class="mb-4 p-4 bg-white rounded shadow">
+              <Button @click="toggleShowProfile(user.username)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ user.username }}</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         <Dialog v-model:open="showProfile">
-          <DialogContent class="overflow-auto h-3/4" style="height: 400px">
+          <DialogContent class="overflow-auto h-3/4">
             <DialogHeader>
               <DialogTitle>User Profile</DialogTitle>
               <DialogClose></DialogClose>
@@ -106,6 +122,31 @@
               <p v-if="post.description" class="mt-2 text-gray-600">{{ post.description }}</p>
               <Button @click="toggleLike(post)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.liked ? 'Unlike' : 'Like' }}</Button>
               <Button @click="toggleShowLikedUsers(post)" class="mt-2 text-blue-600 hover:bg-blue-100">Liked Users</Button>
+              <p class="mt-1">{{ post.likes }} likes</p>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog v-model:open="showMyProfile">
+          <DialogContent class="overflow-auto h-3/4">
+            <DialogHeader>
+              <DialogTitle>My Profile</DialogTitle>
+              <DialogClose></DialogClose>
+            </DialogHeader>
+            <form @submit.prevent="editProfile" class="space-y-4">
+              <h2 class="text-lg font-semibold">Address</h2>
+              <Input v-model="editAddress" class="w-full" />
+              <h2 class="text-lg font-semibold">Description</h2>
+              <Input v-model="editDescription" class="w-full" />
+              <Button type="submit" class="w-full bg-blue-600 text-white hover:bg-blue-700">Edit Profile</Button>
+            </form>
+            <div v-for="post in profileImages" :key="post.id" class="mb-4 p-4 bg-white rounded shadow">
+              <h2 class="text-lg font-semibold">{{ post.title }}</h2>
+              <img :src="getImageUrl(post.path)" alt="Cat Picture" class="rounded" style="width: auto; height: 200px" />
+              <p v-if="post.description" class="mt-2 text-gray-600">{{ post.description }}</p>
+              <Button @click="toggleLike(post)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.liked ? 'Unlike' : 'Like' }}</Button>
+              <Button @click="toggleShowLikedUsers(post)" class="mt-2 text-blue-600 hover:bg-blue-100">Liked Users</Button>
+              <Button @click="deletePost(post)" class="mt-2 text-blue-600 hover:bg-blue-100">Delete</Button>
               <p class="mt-1">{{ post.likes }} likes</p>
             </div>
           </DialogContent>
@@ -154,7 +195,7 @@
                       <h2 class="text-lg font-semibold">{{ post.title }}</h2>
                       <img :src="getImageUrl(post.path)" alt="Cat Picture" class="w-full h-auto rounded" />
                       <p v-if="post.description" class="mt-2 text-gray-600">{{ post.description }}</p>
-                      <Button @click="toggleShowProfile(post)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.username }}</Button>
+                      <Button @click="toggleShowProfile(post.username)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.username }}</Button>
                       <Button @click="toggleLike(post)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.liked ? 'Unlike' : 'Like' }}</Button>
                       <Button @click="toggleShowLikedUsers(post)" class="mt-2 text-blue-600 hover:bg-blue-100">Liked Users</Button>
                       <p class="mt-1">{{ post.likes }} likes</p>
@@ -243,6 +284,16 @@
   const currentProfile = ref(null);
   const profileImages = ref([]);
   // const isAuthenticated = ref(false);
+
+  // search user refs
+  const showSearchUsers = ref(false);
+  const searchedUsers = ref([]);
+  const searchedUser = ref('');
+
+  // my profile refs
+  const showMyProfile = ref(false);
+  const editAddress = ref('');
+  const editDescription = ref('');
 
   const registerErrors = ref({});
   const loading = ref(false);
@@ -491,11 +542,45 @@ const resetRegisterForm = () => {
     showLikedUsers.value = true;
   }
 
-  const toggleShowProfile = async (post) => {
-    const { data, error } = await useFetch(`/api/profile?username=${post.username}`);
+  const toggleShowProfile = async (username) => {
+    const { data, error } = await useFetch(`/api/profile?username=${username}`);
     showProfile.value = true;
     currentProfile.value = data.value.profile;
     profileImages.value = data.value.userImages;
+  }
+
+  const openMyProfile = async () => {
+    const { data, error } = await useFetch(`/api/profile?username=${loginUsername.value}`);
+    showMyProfile.value = true;
+    currentProfile.value = data.value.profile;
+    profileImages.value = data.value.userImages;
+    editAddress.value = currentProfile.value.address;
+    editDescription.value = currentProfile.value.description;
+  }
+
+  const searchUsers = async () => {
+    const { data, error } = await useFetch(`/api/searchusers?username=${searchedUser.value}`);
+    searchedUsers.value = data.value.users;
+  }
+
+  const editProfile = async () => {
+    const { error } = await useFetch('/api/editprofile', {
+      method: 'POST',
+      body: {
+        username: loginUsername.value,
+        description: editDescription.value,
+        address: editAddress.value,
+      },
+    });
+  }
+
+  const deletePost = async (post) => {
+    const { error } = await useFetch(`/api/deletepost`, {
+      method: 'DELETE',
+      body: {
+        id: post.id
+      }
+    });
   }
 
   console.log(mainstore.feedPosts)
