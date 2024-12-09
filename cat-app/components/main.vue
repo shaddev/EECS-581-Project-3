@@ -214,6 +214,9 @@
               <TabsTrigger value="personalfeed">
                 Personal
               </TabsTrigger>
+              <TabsTrigger value="nearbyfeed" >
+                Nearby
+              </TabsTrigger>
             </TabsList>
               <TabsContent value="mainfeed">
                     <h1 class="text-2xl font-semibold mb-4">All Feed</h1>
@@ -237,6 +240,18 @@
                   <Button @click="toggleShowLikedUsers(post)" class="mt-2 text-blue-600 hover:bg-blue-100">Liked Users</Button>
                   <p class="mt-1">{{ post.likes }} likes</p>
                 </div>
+              </TabsContent>
+              <TabsContent value="nearbyfeed">
+                    <h1 class="text-2xl font-semibold mb-4">Nearby Feed</h1>
+                    <div v-for="post in nearbyPosts" :key="post.id" class="mb-4 p-4 bg-white rounded shadow">
+                      <h2 class="text-lg font-semibold">{{ post.title }}</h2>
+                      <img :src="getImageUrl(post.path)" alt="Cat Picture" class="w-full h-auto rounded" />
+                      <p v-if="post.description" class="mt-2 text-gray-600">{{ post.description }}</p>
+                      <Button @click="toggleShowProfile(post.username)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.username }}</Button>
+                      <Button @click="toggleLike(post)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.liked ? 'Unlike' : 'Like' }}</Button>
+                      <Button @click="toggleShowLikedUsers(post)" class="mt-2 text-blue-600 hover:bg-blue-100">Liked Users</Button>
+                      <p class="mt-1">{{ post.likes }} likes</p>
+                    </div>
               </TabsContent>
             </Tabs>
         </div>
@@ -332,6 +347,9 @@
 
   //matches refs
   const showMatches = ref(false)
+
+  // nearby feed refs
+  const nearbyPosts = ref([]); 
 
   // This is the password validation function
   const validatePassword = (password) => {
@@ -638,21 +656,28 @@ const fetchMatches = async () => {
 const fetchLikedPosts = async () => {
     const { data, error } = await useFetch(`/api/liked?username=${loginUsername.value}`);
     likedPosts.value = data.value.likedPictures || [];
-  };
+};
+
+const fetchNearbyPosts = async () => {
+  const { data, error } = await useFetch(`/api/nearby?username=${loginUsername.value}`);
+  nearbyPosts.value = data.value.nearbyPosts || [];
+}
   
-  // Initial fetch
-  watch(() => mainstore.isAuthenticated, async (newVal, oldVal) => {
-    if (newVal) {
-      await mainstore.fetchFeedPosts()
-    }
-    console.log("IsAuthenticated watch", mainstore.isAuthenticated)
-  })
-  // watcher to load liked posts when showing liked pictures is toggled 
-  watch(showLikedPictures, async (newVal, oldVal) => {
-    if (newVal) {
-      await fetchLikedPosts()
-    }
-    console.log("likes watch", newVal)
-  })
-  </script>
+// Initial fetch
+watch(() => mainstore.isAuthenticated, async (newVal, oldVal) => {
+  if (newVal) {
+    await mainstore.fetchFeedPosts();
+    await fetchNearbyPosts();
+  }
+  console.log("IsAuthenticated watch", mainstore.isAuthenticated)
+})
+// watcher to load liked posts when showing liked pictures is toggled 
+watch(showLikedPictures, async (newVal, oldVal) => {
+  if (newVal) {
+    await fetchLikedPosts()
+  }
+  console.log("likes watch", newVal)
+})
+
+</script>
 
