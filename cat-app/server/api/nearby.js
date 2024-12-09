@@ -3,30 +3,29 @@ Feed of nearby pictures
 `
 
 import { initDb } from '../db';
+import { distanceCalc, getCoords } from '../util';
 
 // calculate distance between 2 points using Haversine formula
-const distanceCalc = (lat1, lon1, lat2, lon2) => {
-    console.log(lat1, lon1, lat2, lon2);
-    const r = 6378;
-    const lat_1 = lat1 * Math.PI / 180;
-    const lat_2 = lat2 * Math.PI / 180;
+// const distanceCalc = (lat1, lon1, lat2, lon2) => {
+//     console.log(lat1, lon1, lat2, lon2);
+//     const r = 6378;
+//     const lat_1 = lat1 * Math.PI / 180;
+//     const lat_2 = lat2 * Math.PI / 180;
 
-    const deltaLat = (lat2 - lat1) * Math.PI / 180;
-    const deltaLon = (lon2 - lon1) * Math.PI / 180;
+//     const deltaLat = (lat2 - lat1) * Math.PI / 180;
+//     const deltaLon = (lon2 - lon1) * Math.PI / 180;
 
-    const a1 = Math.sin(deltaLat / 2) ** 2;
-    const a2 = Math.cos(lat_1) * Math.cos(lat_2);
-    const a3 = Math.sin(deltaLon / 2) ** 2;
+//     const a1 = Math.sin(deltaLat / 2) ** 2;
+//     const a2 = Math.cos(lat_1) * Math.cos(lat_2);
+//     const a3 = Math.sin(deltaLon / 2) ** 2;
 
-    const a = a1 + a2 + a3;
+//     const a = a1 + a2 + a3;
 
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+//     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
-    console.log(a, c)
-
-    const distance = r * c / 1000;
-    return distance;
-}
+//     const distance = r * c / 1000;
+//     return distance;
+// }
 
 export default defineEventHandler(async (event) => {
 
@@ -51,32 +50,38 @@ export default defineEventHandler(async (event) => {
         };
     }
 
-    var userLat;
-    var userLon;
+    const userCoords = await getCoords(userAddress);
+    const userLat = userCoords.lat;
+    const userLon = userCoords.lon;
 
-    try {
-        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(userAddress)}&format=json&addressdetails=1`;
-        console.log("url is", url);
-        const response = await fetch(url, {
-          method: 'GET',
-        });
-    
-        const data = await response.json();
-        //console.log('Response Data:', data);
-
-        if (data.length === 0){
-            console.error('Error fetching address details:', error);
-            return {success: false}
-        }
-
-        userLat = data[0].lat;
-        userLon = data[0].lon;
-
-        console.log("User lat & lon", userLat, userLon);
-      } catch (error) {
+    if (userLat === null || userLon === null){
         console.error('Error fetching user address details:', error);
         return {success: false}
     }
+
+    // try {
+    //     const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(userAddress)}&format=json&addressdetails=1`;
+    //     console.log("url is", url);
+    //     const response = await fetch(url, {
+    //       method: 'GET',
+    //     });
+    
+    //     const data = await response.json();
+    //     //console.log('Response Data:', data);
+
+    //     if (data.length === 0){
+    //         console.error('Error fetching address details:', error);
+    //         return {success: false}
+    //     }
+
+    //     userLat = data[0].lat;
+    //     userLon = data[0].lon;
+
+    //     console.log("User lat & lon", userLat, userLon);
+    //   } catch (error) {
+    //     console.error('Error fetching user address details:', error);
+    //     return {success: false}
+    // }
 
 
 
@@ -96,35 +101,20 @@ export default defineEventHandler(async (event) => {
         if (address === null || address === undefined || typeof address !== 'string') {
             continue;
         }
-        
-        try {
-            const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&addressdetails=1`;
-            console.log("url is", url);
-            const response = await fetch(url, {
-            method: 'GET',
-            });
-        
-            const data = await response.json();
-            //console.log('Response Data:', data);
 
-            if (data.length === 0){
-                return;
-            }
+        let coords = await getCoords(address);
+        let lat = coords.lat;
+        let lon = coords.lon;
 
-            let lat = data[0].lat;
-            let lon = data[0].lon;
+        if (lat === null || lon === null){
+            continue;
+        }
 
-            console.log("Post lat & lon", lat, lon);
+        let distance = distanceCalc(lat, lon, userLat, userLon);
+        console.log("distance is", distance)
 
-            let distance = distanceCalc(lat, lon, userLat, userLon);
-            console.log("distance is", distance)
-
-            if (distance <= NEARBY_DISTANCE){
-                nearbyPosts.push(picture);
-            }
-
-        } catch (error) {
-            console.error('Error:', error);
+        if (distance <= NEARBY_DISTANCE){
+            nearbyPosts.push(picture);
         }
     }
 

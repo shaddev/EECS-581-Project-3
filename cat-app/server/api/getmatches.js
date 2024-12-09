@@ -37,6 +37,7 @@
 
 
 import { initDb } from '../db';
+import { getCoords, distanceCalc } from '../util';
 
 export default defineEventHandler(async event => {
   const db = await initDb();
@@ -57,7 +58,7 @@ export default defineEventHandler(async event => {
     // console.log('Images table schema:', JSON.stringify(imagesSchema, null, 2));
     // console.log('Likes table schema:', JSON.stringify(likesSchema, null, 2));
 
-    const user = await db.get('SELECT id FROM users WHERE username = ?', [username]);
+    const user = await db.get('SELECT id, address FROM users WHERE username = ?', [username]);
     if (!user) {
       return {
         success: false,
@@ -87,6 +88,7 @@ export default defineEventHandler(async event => {
     console.log("Now, we need to find mutual likes...");
     const matchesQuery = `
     SELECT DISTINCT u2.username AS matchUsername, 
+                    u2.id AS matchId,
                     i2.title AS matchTitle, 
                     i2.description AS matchDescription, 
                     i2.path AS matchPath
@@ -107,9 +109,67 @@ export default defineEventHandler(async event => {
     const matches = await db.all(matchesQuery, [userId, userId]);
 
 
+    // now get matches based on closeness
+    const NEARBY_DISTANCE = 20;
+    const userAddress = user.address;
+    var nearbyUsers = [];
+
+    if (userAddress !== null && userAddress !== undefined && typeof userAddress === 'string'){
+      const userCoords = await getCoords(userAddress);
+      const userLat = userCoords.lat;
+      const userLon = userCoords.lon;
+
+      if (userLat !== null && userLon !== null){
+        const otherUsers =  await db.all('SELECT * FROM users WHERE id != ?', [userId]);
+
+        for (const otherUser of otherUsers){
+          let address = otherUser.address;
+          if (address === null || address === undefined || typeof address !== 'string'){
+            continue;
+          }
+
+          let coords = await getCoords(address);
+          let lat = coords.lat;
+          let lon = coords.lon;
+
+          if (lat === null || lon === null){
+              continue;
+          }
+
+          let distance = distanceCalc(lat, lon, userLat, userLon);
+          console.log("distance is", distance)
+
+          if (distance <= NEARBY_DISTANCE){
+            nearbyUsers.push(otherUser.id);
+          }
+        }
+      }
+    }
+
+    console.log('Nearby users are', nearbyUsers);
+
+    const matchUserIds = matches.map((match) => match.matchId);
+    nearbyUsers = nearbyUsers.filter((id) => ! matchUserIds.includes(id));
+
+    if (nearbyUsers.length > 0){
+
+      const qMarksString = '(' + nearbyUsers.map(() => '?').join(', ') + ')';
+      const nearbyPosts = await db.all(`SELECT DISTINCT u.username AS matchUsername, 
+                    u.id AS matchId,
+                    i.title AS matchTitle, 
+                    i.description AS matchDescription, 
+                    i.path AS matchPath
+                    FROM users u
+                    JOIN images i on u.id = i.userId
+                    WHERE u.id in ${qMarksString}`, nearbyUsers);
+      
+      console.log("Nearby posts are", nearbyPosts);
+
+      matches.push(...nearbyPosts);
+    }
 
     if (matches.length === 0) {
-      console.log('No mutual likes found.');
+      console.log('No mutual likes / nearby users found.');
     } else {
       console.log('Found matches:', JSON.stringify(matches, null, 2));
     }
