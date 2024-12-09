@@ -1,6 +1,21 @@
-`
-Feed of nearby pictures
-`
+/**
+ * Nearby Pictures API Handler
+ * 
+ * An API endpoint handler that retrieves all pictures uploaded by nearby users
+ * Author: Team 7
+ * Created:12/08/2024
+ *
+ * Preconditons: 
+ * Valid database connection must be available
+ *   - Input:
+ *     - username (string): Valid username
+ *          The user must have a valid address, and only users with valid addresses 
+ *          will be considered when determine nearby users
+ * 
+ * Postconditions:Returns JSON object with:
+ *     - success (boolean): Indicating operation status
+ *     - nearbyPosts (array): Array of nearby posts (if successful)
+ **/
 
 import { initDb } from '../db';
 import { distanceCalc, getCoords } from '../util';
