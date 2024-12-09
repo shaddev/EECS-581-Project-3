@@ -191,7 +191,7 @@
         </Dialog>
 
         <Dialog v-model:open="showChat">
-          <DialogContent>
+          <DialogContent class="max-h-[55rem] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Chat</DialogTitle>
               <DialogClose></DialogClose>
@@ -202,6 +202,24 @@
             <Button @click="sendMessage()" class="mt-2 text-blue-600 hover:bg-blue-100">Send</Button>
             <div v-for="chatMessage in currentChat" :key="chatMessage.id" class="mb-4 p-4 bg-white rounded shadow">
               <h2 class="text-lg font-semibold">{{ chatMessage.username + ": " + chatMessage.message }}</h2>
+              <h2 v-if="chatMessage.message.match(/https?:\/\/[^\s]+/g)" class="text-lg font-semibold">
+                <div v-for="post in mainstore.feedPosts" :key="post.id">
+                  <div v-if="chatMessage.message.match(/#(\d+)/)?.[1] == post.id">
+                    <br>
+                    <h1>Embedded Post:</h1>                        
+                    <h2 class="text-lg font-semibold">{{ post.title }}</h2>
+                        <img :src="getImageUrl(post.path)" alt="Cat Picture" class="w-full h-auto rounded" />
+                        <p v-if="post.description" class="mt-2 text-gray-600">{{ post.description }}</p>
+                        <!-- <Button @click="toggleShowProfile(post.username)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.username }}</Button> -->
+                        <Button @click="toggleLike(post)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.liked ? 'Unlike' : 'Like' }}</Button>
+                        <!-- <Button @click="toggleShowLikedUsers(post)" class="mt-2 text-blue-600 hover:bg-blue-100">Liked Users</Button> -->
+                        <p class="mt-1">{{ post.likes }} likes</p>
+                        <p class="mt-2 text-blue-600">
+                          <a :href="getPostLink(post.id)">Post Reference Link</a>
+                        </p>
+                  </div>
+                </div>
+              </h2>
             </div>
           </DialogContent>
         </Dialog>
@@ -221,13 +239,18 @@
               <TabsContent value="mainfeed">
                     <h1 class="text-2xl font-semibold mb-4">All Feed</h1>
                     <div v-for="post in mainstore.feedPosts" :key="post.id" class="mb-4 p-4 bg-white rounded shadow">
-                      <h2 class="text-lg font-semibold">{{ post.title }}</h2>
-                      <img :src="getImageUrl(post.path)" alt="Cat Picture" class="w-full h-auto rounded" />
-                      <p v-if="post.description" class="mt-2 text-gray-600">{{ post.description }}</p>
-                      <Button @click="toggleShowProfile(post.username)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.username }}</Button>
-                      <Button @click="toggleLike(post)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.liked ? 'Unlike' : 'Like' }}</Button>
-                      <Button @click="toggleShowLikedUsers(post)" class="mt-2 text-blue-600 hover:bg-blue-100">Liked Users</Button>
-                      <p class="mt-1">{{ post.likes }} likes</p>
+                      <section :id="post.id">
+                        <h2 class="text-lg font-semibold">{{ post.title }}</h2>
+                        <img :src="getImageUrl(post.path)" alt="Cat Picture" class="w-full h-auto rounded" />
+                        <p v-if="post.description" class="mt-2 text-gray-600">{{ post.description }}</p>
+                        <Button @click="toggleShowProfile(post.username)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.username }}</Button>
+                        <Button @click="toggleLike(post)" class="mt-2 text-blue-600 hover:bg-blue-100">{{ post.liked ? 'Unlike' : 'Like' }}</Button>
+                        <Button @click="toggleShowLikedUsers(post)" class="mt-2 text-blue-600 hover:bg-blue-100">Liked Users</Button>
+                        <p class="mt-1">{{ post.likes }} likes</p>
+                        <p class="mt-2 text-blue-600">
+                          <a :href="getPostLink(post.id)">Post Reference Link</a>
+                        </p>
+                      </section>
                     </div>
               </TabsContent>
               <TabsContent value="personalfeed">
@@ -527,6 +550,11 @@ const resetRegisterForm = () => {
     }
   }
 };
+
+const getPostLink = (postId) => {
+  return `${window.location.href.split('#')[0]}#${postId}`;
+};
+
 
   const sendMessage = async () => {
     const { data } = await useFetch('/api/sendmessage', {
